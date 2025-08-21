@@ -121,24 +121,31 @@
         };
       };
 
+      // Ecoregion descriptions mapping
+      const ecoregionDescriptions = {
+        '47': 'The Western Corn Belt Plains ecoregion is characterized by flat to gently rolling glacial till plains with fertile soils supporting extensive agriculture, primarily corn and soybean production. This region features relatively few natural areas remaining due to intensive agricultural land use.',
+        '48': 'The Lake Agassiz Plain is a flat, poorly drained landscape formed by glacial Lake Agassiz. This region is characterized by rich, dark soils and extensive wetlands, supporting agriculture including sugar beets, potatoes, and small grains, along with numerous prairie pothole wetlands.',
+        '50': 'The Northern Lakes and Forests ecoregion contains a mosaic of lakes, wetlands, and forests on glacial terrain. This region supports mixed coniferous-deciduous forests, numerous lakes and streams, and diverse wildlife habitats including areas important for recreation and timber production.',
+        '51': 'The North Central Hardwood Forests ecoregion is characterized by rolling hills with deciduous and mixed forests. This region features maple-basswood and oak forests on well-drained soils, with agriculture in suitable areas and significant forest cover remaining.',
+        '52': 'The Driftless Area is characterized by deeply dissected terrain with steep slopes and narrow valleys that escaped glaciation. This unique region features diverse topography with deciduous forests, grasslands, and agricultural areas, supporting high biodiversity and cold-water streams.'
+      };
+
       const layer = L.geoJSON(asCollection, {
         style: getEcoregionStyle,
         onEachFeature: (feature, lyr) => {
           // Build a focused popup showing ecoregion hierarchy
           const props = feature.properties || {};
+          const l3Code = props.US_L3CODE || '';
+          const description = ecoregionDescriptions[l3Code] || 'Description not available for this ecoregion.';
+          
           const popupContent = `
             <div style="max-width: 300px;">
               <h4 style="margin: 0 0 8px 0; color: #2c3e50;">${props.US_L4NAME || 'Unknown Level 4 Ecoregion'}</h4>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Level 4 Code:</strong> ${props.US_L4CODE || 'N/A'}</p>
               <p style="margin: 4px 0; font-size: 12px;"><strong>Level 3:</strong> ${props.US_L3NAME || 'N/A'} (${props.US_L3CODE || 'N/A'})</p>
-              <details style="margin-top: 8px;">
-                <summary style="cursor: pointer; font-size: 12px;">All Attributes</summary>
-                <table style="font-size: 11px; margin-top: 4px;">
-                  ${Object.entries(props)
-                    .map(([k, v]) => `<tr><th style="text-align:left;padding-right:8px;vertical-align:top;">${k}:</th><td>${v}</td></tr>`)
-                    .join('')}
-                </table>
-              </details>
+              <div style="margin-top: 12px; padding: 8px; background-color: #f8f9fa; border-left: 3px solid #007cba; border-radius: 3px;">
+                <p style="margin: 0; font-size: 12px; line-height: 1.4; color: #2c3e50;">${description}</p>
+              </div>
             </div>
           `;
           lyr.bindPopup(popupContent);

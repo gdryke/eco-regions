@@ -5,7 +5,8 @@ Interactive web map displaying EPA Level IV Ecoregions for Minnesota with approp
 ## Features
 
 - **Ecoregion Symbology**: Colors based on EPA Level III ecoregion classifications
-- **Interactive Popups**: Click features to see detailed ecoregion information
+- **Interactive Popups**: Click features to see ecoregion information with detailed descriptions
+- **Ecoregion Descriptions**: Comprehensive descriptions of each Level III ecoregion
 - **Hover Effects**: Enhanced highlighting on mouseover
 - **Legend**: Visual guide to understand the color coding
 - **Responsive Design**: Works on desktop and mobile devices
