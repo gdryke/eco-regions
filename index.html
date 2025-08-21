@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shapefile on GitHub Pages</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    html, body, #map { height: 100%; margin: 0; }
+    .info { position: absolute; top: 10px; left: 10px; background: white; padding: 8px 10px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.15); z-index: 1000; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="info">Click a feature to see its attributes</div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <!-- shp.js parses zipped shapefiles in the browser -->
+  <script src="https://unpkg.com/shpjs@latest/dist/shp.min.js"></script>
+
+  <script>
+    // 1) Create a map
+    const map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 2) Load your zipped shapefile (served from the same repo to avoid CORS issues)
+    // Put your file at /data/mn_eco_l4.zip
+    shp('data/mn_eco_l4.zip').then(geojson => {
+      // shp() returns GeoJSON or a FeatureCollection/array if multiple layers exist
+      const asCollection = geojson.type === 'FeatureCollection'
+        ? geojson
+        : { type: 'FeatureCollection', features: Array.isArray(geojson) ? geojson : [geojson] };
+
+      // 3) Add to map with interactivity
+      const layer = L.geoJSON(asCollection, {
+        style: f => ({ weight: 1, opacity: 1, color: '#3388ff', fillOpacity: 0.2 }),
+        onEachFeature: (feature, lyr) => {
+          // Build a small table of attributes for the popup
+          const props = feature.properties || {};
+          const rows = Object.entries(props)
+            .map(([k, v]) => `<tr><th style="text-align:left;padding-right:8px;">${k}</th><td>${v}</td></tr>`)
+            .join('');
+          lyr.bindPopup(`<table>${rows || '<tr><td>No attributes</td></tr>'}</table>`);
+          // Optional: hover highlight
+          lyr.on('mouseover', () => lyr.setStyle({ weight: 3 }));
+          lyr.on('mouseout',  () => lyr.setStyle({ weight: 1 }));
+        }
+      }).addTo(map);
+
+      // 4) Fit the map to the data
+      try { map.fitBounds(layer.getBounds(), { padding: [10,10] }); } catch (e) {}
+    }).catch(err => {
+      console.error(err);
+      alert('Failed to load shapefile. See console for details.');
+    });
+  </script>
+</body>
+</html>
+
