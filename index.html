@@ -13,11 +13,63 @@
   <style>
     html, body, #map { height: 100%; margin: 0; }
     .info { position: absolute; top: 10px; left: 10px; background: white; padding: 8px 10px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.15); z-index: 1000; }
+    .legend { 
+      position: absolute; 
+      bottom: 20px; 
+      right: 20px; 
+      background: white; 
+      padding: 12px; 
+      border-radius: 6px; 
+      box-shadow: 0 2px 6px rgba(0,0,0,.15); 
+      z-index: 1000;
+      font-size: 12px;
+      max-width: 250px;
+    }
+    .legend h4 { 
+      margin: 0 0 8px 0; 
+      font-size: 14px; 
+      color: #2c3e50; 
+    }
+    .legend-item { 
+      display: flex; 
+      align-items: center; 
+      margin: 4px 0; 
+    }
+    .legend-color { 
+      width: 16px; 
+      height: 16px; 
+      margin-right: 8px; 
+      border: 1px solid #666; 
+      border-radius: 2px; 
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <div class="info">Click a feature to see its attributes</div>
+  <div class="info">Click features to see ecoregion details</div>
+  <div class="legend">
+    <h4>EPA Level III Ecoregions</h4>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #E8D5A3;"></div>
+      <span>Western Corn Belt Plains</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #B8D4E3;"></div>
+      <span>Lake Agassiz Plain</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #A8D5A8;"></div>
+      <span>Northern Lakes and Forests</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #D4B896;"></div>
+      <span>North Central Hardwood Forests</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #F2E6B8;"></div>
+      <span>Driftless Area</span>
+    </div>
+  </div>
 
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -43,19 +95,65 @@
         ? geojson
         : { type: 'FeatureCollection', features: Array.isArray(geojson) ? geojson : [geojson] };
 
-      // 3) Add to map with interactivity
+      // 3) Add to map with symbology based on Level 3 ecoregions
+      // Color scheme for Minnesota EPA Level 3 Ecoregions
+      const getEcoregionStyle = (feature) => {
+        const l3Code = feature.properties?.US_L3CODE || '';
+        const l3Name = feature.properties?.US_L3NAME || '';
+        
+        // Color mapping based on EPA Level 3 Ecoregions
+        const colorMap = {
+          '47': '#E8D5A3', // Western Corn Belt Plains - light tan/beige
+          '48': '#B8D4E3', // Lake Agassiz Plain - light blue 
+          '50': '#A8D5A8', // Northern Lakes and Forests - light green
+          '51': '#D4B896', // North Central Hardwood Forests - light brown
+          '52': '#F2E6B8'  // Driftless Area - pale yellow
+        };
+        
+        const fillColor = colorMap[l3Code] || '#CCCCCC'; // Default gray
+        
+        return {
+          weight: 1.5,
+          opacity: 0.8,
+          color: '#666666',      // Border color
+          fillColor: fillColor,
+          fillOpacity: 0.6
+        };
+      };
+
       const layer = L.geoJSON(asCollection, {
-        style: f => ({ weight: 1, opacity: 1, color: '#3388ff', fillOpacity: 0.2 }),
+        style: getEcoregionStyle,
         onEachFeature: (feature, lyr) => {
-          // Build a small table of attributes for the popup
+          // Build a focused popup showing ecoregion hierarchy
           const props = feature.properties || {};
-          const rows = Object.entries(props)
-            .map(([k, v]) => `<tr><th style="text-align:left;padding-right:8px;">${k}</th><td>${v}</td></tr>`)
-            .join('');
-          lyr.bindPopup(`<table>${rows || '<tr><td>No attributes</td></tr>'}</table>`);
-          // Optional: hover highlight
-          lyr.on('mouseover', () => lyr.setStyle({ weight: 3 }));
-          lyr.on('mouseout',  () => lyr.setStyle({ weight: 1 }));
+          const popupContent = `
+            <div style="max-width: 300px;">
+              <h4 style="margin: 0 0 8px 0; color: #2c3e50;">${props.US_L4NAME || 'Unknown Level 4 Ecoregion'}</h4>
+              <p style="margin: 4px 0; font-size: 12px;"><strong>Level 4 Code:</strong> ${props.US_L4CODE || 'N/A'}</p>
+              <p style="margin: 4px 0; font-size: 12px;"><strong>Level 3:</strong> ${props.US_L3NAME || 'N/A'} (${props.US_L3CODE || 'N/A'})</p>
+              <details style="margin-top: 8px;">
+                <summary style="cursor: pointer; font-size: 12px;">All Attributes</summary>
+                <table style="font-size: 11px; margin-top: 4px;">
+                  ${Object.entries(props)
+                    .map(([k, v]) => `<tr><th style="text-align:left;padding-right:8px;vertical-align:top;">${k}:</th><td>${v}</td></tr>`)
+                    .join('')}
+                </table>
+              </details>
+            </div>
+          `;
+          lyr.bindPopup(popupContent);
+          
+          // Enhanced hover effects
+          lyr.on('mouseover', () => {
+            lyr.setStyle({ 
+              weight: 3, 
+              opacity: 1,
+              color: '#2c3e50'
+            });
+          });
+          lyr.on('mouseout', () => {
+            lyr.setStyle(getEcoregionStyle(feature));
+          });
         }
       }).addTo(map);
 
