@@ -15,9 +15,11 @@ Interactive web map displaying EPA Level IV Ecoregions for Minnesota with approp
 
 The map uses distinct colors for each EPA Level III ecoregion found in Minnesota:
 
-- **Northern Lakes and Forests** (50) - Light Green (#A8D5A8)
+- **Northern Glaciated Plains** (46) - Light Purple/Pink (#E8B4E3)
 - **Western Corn Belt Plains** (47) - Light Tan/Beige (#E8D5A3)  
 - **Lake Agassiz Plain** (48) - Light Blue (#B8D4E3)
+- **Northern Minnesota Wetlands** (49) - Light Blue-Gray (#A8C5D5)
+- **Northern Lakes and Forests** (50) - Light Green (#A8D5A8)
 - **North Central Hardwood Forests** (51) - Light Brown (#D4B896)
 - **Driftless Area** (52) - Pale Yellow (#F2E6B8)
 
